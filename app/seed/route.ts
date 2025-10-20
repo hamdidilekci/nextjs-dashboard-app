@@ -101,16 +101,8 @@ async function seedRevenue() {
   return insertedRevenue;
 }
 
-export async function GET(request: Request) {
+export async function GET() {
 	try {
-		const url = new URL(request.url)
-		const token = url.searchParams.get('token')
-		const expectedToken = process.env.SEED_TOKEN
-
-		if (!expectedToken || token !== expectedToken) {
-			return Response.json({ error: 'Unauthorized' }, { status: 401 })
-		}
-
 		const result = await sql.begin((sql) => [seedUsers(), seedCustomers(), seedInvoices(), seedRevenue()])
 
 		return Response.json({ message: 'Database seeded successfully' })
