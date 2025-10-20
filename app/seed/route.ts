@@ -101,17 +101,20 @@ async function seedRevenue() {
   return insertedRevenue;
 }
 
-export async function GET() {
-  try {
-    const result = await sql.begin((sql) => [
-      seedUsers(),
-      seedCustomers(),
-      seedInvoices(),
-      seedRevenue(),
-    ]);
+export async function GET(request: Request) {
+	try {
+		const url = new URL(request.url)
+		const token = url.searchParams.get('token')
+		const expectedToken = process.env.SEED_TOKEN
 
-    return Response.json({ message: 'Database seeded successfully' });
-  } catch (error) {
-    return Response.json({ error }, { status: 500 });
-  }
+		if (!expectedToken || token !== expectedToken) {
+			return Response.json({ error: 'Unauthorized' }, { status: 401 })
+		}
+
+		const result = await sql.begin((sql) => [seedUsers(), seedCustomers(), seedInvoices(), seedRevenue()])
+
+		return Response.json({ message: 'Database seeded successfully' })
+	} catch (error) {
+		return Response.json({ error }, { status: 500 })
+	}
 }
